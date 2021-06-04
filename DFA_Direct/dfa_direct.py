@@ -3,13 +3,13 @@ from DFA_Direct.tree import Tree
 from DFA_Direct.calculations import lastpos, firstpos, followpos, states_tree
 from collections import Counter
 
-OPERATORS = ['|', '*', '+', '?', '.', ')', '(']
+OPERATORS = ['|', '*', 'ψ', '?', 'ξ', ')', '(']
 EPSILON = "ε"
 
 def sintetic_tree(data_tree, expresion):
     # class Tree
     value_tree = Tree()
-    value_tree.data = '.'
+    value_tree.data = 'ξ'
     leaves = Tree()
     # mark symbol
     leaves.data = '#'
@@ -45,9 +45,28 @@ def direct(first, last, data, expresion):
 
     # symbols = get_symbol(expresion)
     symbols = []
+    
+    i = 0
+    temp = ''
+
+    while (i<len(expresion)):
+        if (expresion[i] not in OPERATORS) and (expresion[i] not in symbols) and (expresion[i] != EPSILON):
+            temp += expresion[i]
+        if (expresion[i] in OPERATORS) and (temp != EPSILON) and (temp not in symbols) and (temp != ''):
+            symbols.append(temp)
+            temp = ""
+        # sumamos al contador
+        i += 1
+
+    if temp != "":
+        symbols.append(temp)
+        
+    '''
+    # symbols = get_symbol(expresion)
     for symbol in expresion:
         if (symbol not in OPERATORS) and (symbol not in symbols) and (symbol != EPSILON):
             symbols.append(symbol)
+    '''
     
     # go through the states of the automata
     for state in automata.state:
@@ -89,4 +108,47 @@ def add_tree(automata, id):
         if Counter(node.name) == Counter(id):
             return node
     return False
+
+# funcion de epsilon lock del primer nodo
+def ecerradura_node(automata, node):
+    for i in node:
+        for j in automata.state[i].transition:
+            if (j.symbol == EPSILON) and (j.id not in node):
+                node.append(j.id)
+    return node
+
+def simulate_dfa_direct(automata, expresion):
+    if expresion == ' ' or expresion == '':
+        expresion = EPSILON
+    current_node = [0]
+    current_node = ecerradura_node(automata, current_node)
+    i = 0
+    while True:
+        value = []
+        '''
+        print("Simbolos: %s " % expresion[i])
+        print("Estados: %s " % current_node)
+        '''
+        for node in current_node:
+            for transitions in automata.state[node].transition:
+                # si el simbolo se encuentra en la expresion y no en los evaluados, se agrega a la lista
+                if (transitions.symbol == expresion[i]) and (transitions.id not in value):
+                    value.append(transitions.id)
+        i += 1
+        # tomamos de la lista la nueva cerradura
+        value = ecerradura_node(automata, value)
+
+        # si no esta en la cerrado, y la expresion solo tiene epsilon, terminamos el ciclo
+        if (not value) and (expresion == EPSILON):
+            break
+
+        # si el contador se acaba terminamos el prcesos copiamos los datos a la lista
+        current_node = value.copy()
+        if i > len(expresion)-1:
+            break
+    # recorremos la lista, para ver si son aceptados o no
+    for node in current_node:
+        if automata.state[node].accept == True:
+            return 'Si'
+    return 'No'
     

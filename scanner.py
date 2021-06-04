@@ -1,8 +1,6 @@
 '''
- Archivo para hacer que scanee el archivo generado
-
+Archivo para hacer que scanee el archivo generado
 '''
-
 from utils import create_automata
 from DFA.simulate import simulate_dfa
 
