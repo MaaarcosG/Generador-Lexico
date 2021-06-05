@@ -1,7 +1,6 @@
 # File for productions only
 
 OPS  = ["[", "{", "|", "("]
-ENDING = ["]", "}", "|", ")"]
 OPERATORS = ['|', '*', 'ψ', '?', 'ξ', ')', '(']
 
 def parser(productions, parse_line, tokens, keywords):
@@ -58,56 +57,60 @@ def parser(productions, parse_line, tokens, keywords):
     string += "\t# Declaramos las variables int como globales para las operaiones\n"
     string += "\tvalue, result, value1, value2 = 0,0,0,0\n\n"
     string += "\t# COMIENZA LAS EVALUACIONES DE LAS PRODUCCIOENS\n"
-    
+
+    # los tokens permitidos dentro de las produccionse
     new_tokens = []
     for p in productions:
-        string = encabezado_función(p, string)
+        string = encabezado_funcion(p, string)
         string, news = body_funcion(productions[p], string, parse_line, tokens, keywords)
         string += "\n"
         for token in news:
             if token not in new_tokens:
                 new_tokens.append(token)
 
+    # print(new_tokens)
     file.write(string)
     file.close()
 
-    new_parse = parse_line[:-1]
+    automata_parse = parse_line[:-1]
     for token in new_tokens:
         if token in OPERATORS:
-            new_parse += "|" + str(ord(token))
+            automata_parse += "|" + str(ord(token))
         else:
-            new_parse += "|" + token
-    new_parse = new_parse + ")"
+            automata_parse += "|" + token
+    # automata generados por los tokens y el algoritmo directo
+    automata_parse = automata_parse + ")"
+    #print(automata_parse)
     fixed_parser = fix_expect(string)
     
-    return fixed_parser, new_parse
+    return fixed_parser, automata_parse
 
 def fix_expect(parser):
     parser = parser.split("\n")
-    new_parser = ""
+    automata_parser = ""
     for line in parser:
         if "self.expect(" in line and "while" not in line:
             new_line = line.split("(",1)
-            new_parser += new_line[0] + "("
+            automata_parser += new_line[0] + "("
             args = new_line[1].split("(", 1)
             second = args[1].replace(")", "")
             second = second.replace(":", "")
-            new_parser += args[0] + "," + second + "):\n"
+            automata_parser += args[0] + "," + second + "):\n"
         elif "self.expect(" in line and "while" in line:
             or_parted = line.split("or")
             for part in or_parted:
                 new_line = part.split("(",1)
-                new_parser += new_line[0] + "("
+                automata_parser += new_line[0] + "("
                 args = new_line[1].split("(", 1)
                 second = args[1].replace(")", "")
-                new_parser += args[0] + "," + second[:-1] + ") or"
-            new_parser = new_parser[:-2] +  ":\n"
+                automata_parser += args[0] + "," + second[:-1] + ") or"
+            automata_parser = automata_parser[:-2] +  ":\n"
         else:
-            new_parser += line + "\n"
-    return new_parser
+            automata_parser += line + "\n"
+    return automata_parser
 
 # devuelve el nombre de la funcion
-def encabezado_función(data, string):
+def encabezado_funcion(data, string):
     # quitamos los valores tab y enter que encontremos en producciones
     data = data.replace("\n", "")
     data = data.replace("\t", "")
@@ -133,10 +136,13 @@ def body_funcion(body, string, parse_line, tokens, key_words):
     extras = "\t\t"
     conditional = False
     inside_if = False
+
+    # hacemos un ciclo para sobreescribir el archivos
     while actual < len(body):
         if body[actual] == "{":
             extra = actual + 1
             counter = 0
+            # si no encuentra dentro de las operaciones validas, anada las siguientes lineas
             while body[extra] not in OPS and counter != 2:
                 if body[extra] == " ":
                     pass
@@ -146,6 +152,7 @@ def body_funcion(body, string, parse_line, tokens, key_words):
                 else:
                     temp += body[extra]
                 extra += 1
+            # este simbolo representa las funciones en C, las escribimos en python    
             if "<" in temp:
                     if conditional:
                         temp = "self.expect('" + temp + "'):"
@@ -157,6 +164,7 @@ def body_funcion(body, string, parse_line, tokens, key_words):
                 temp = "self.read_token(" + temp +")"
             else:
                 temp = "self."+ temp + "()"
+            # escribimos funciones con respecto a lo encontrado anteriormente
             string += extras + "while self.expect(" + temp +"):\n"
             temp = ""
             extras += "\t"
@@ -164,8 +172,8 @@ def body_funcion(body, string, parse_line, tokens, key_words):
             extras = extras.replace("\t", "", 1)
             if inside_if:
                 extras = extras.replace("\t", "", 1)
-
-
+        
+        # como el archivo encuentra . los eliminamos 
         elif body[actual] == "(" and body[actual+1] == ".":
             actual += 2
             while body[actual] != "." or body[actual + 1] != ")":
@@ -180,6 +188,7 @@ def body_funcion(body, string, parse_line, tokens, key_words):
             while body[actual] != '"':
                 temp += body[actual]
                 actual += 1
+            # añadimos condicionales a las funciones de producciones creadas anteriormente
             if conditional:
                 string += "self.expect(self.read_token('" + temp + "')):\n"
                 conditional = False
@@ -187,14 +196,12 @@ def body_funcion(body, string, parse_line, tokens, key_words):
             new_tokens.append(temp)
             temp = ""
 
-
         elif body[actual] == "(":
             pass
 
         elif body[actual] == ")":
             if inside_if:
                 extras = extras.replace("\t", "", 1)
-
 
         elif body[actual] == "[":
             string += extras + "if "
@@ -205,10 +212,9 @@ def body_funcion(body, string, parse_line, tokens, key_words):
             if inside_if:
                 extras = extras.replace("\t", "", 1)
 
-
+        # si encuentra la funcion or, evalua los siguientes aspectos
         elif body[actual] == "|":
             extra = actual -1
-            # search for previous symbol
             while extra > 0:
                 if body[extra] == " " or body[extra] == "\n":
                     pass
@@ -217,7 +223,6 @@ def body_funcion(body, string, parse_line, tokens, key_words):
                 elif body[extra] in OPS:
                     break
                 extra -= 1
-            # what to do with each previous case
             if body[extra] == "{":
                 part = string.rfind("while")
                 while string[part] != ":":
@@ -234,6 +239,7 @@ def body_funcion(body, string, parse_line, tokens, key_words):
                     else:
                         temp += body[i]
                     i += 1
+                # como dijimos, creamos la funcion en python, a partir de este simbolo
                 if "<" in temp:
                         if conditional:
                             string += "self.expect('" + temp + "'):"
@@ -292,7 +298,6 @@ def body_funcion(body, string, parse_line, tokens, key_words):
 
             elif body[extra] == "|":
                 pass
-            # Siguiente parte del or
             temp = ""
             inside_if = True
             i = actual + 1
@@ -323,7 +328,6 @@ def body_funcion(body, string, parse_line, tokens, key_words):
             string += extras + "elif self.expect(" + temp + "):\n"
             extras += "\t"
             temp = ""
-
 
         elif body[actual] == " " or body[actual] == "\n" or body[actual] == "\t":
             if temp != "":

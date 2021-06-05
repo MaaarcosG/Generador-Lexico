@@ -6,6 +6,8 @@ Codigo Fuente Primero proyecto: https://github.com/MaaarcosG/Automatas.git
 Codigo Fuente Segundo y Tercer Proyecto: https://github.com/MaaarcosG/Generador-Lexico.git
 
 Video de Youtube: 
+- https://youtu.be/vz1fPEeHDvA
+
 Made by:
 - Sergio Juan Marcos Gutierrez Romero
 - Carne: 17909

@@ -1,2 +1,1 @@
-do while do hola como estas do
-while 123.32 2 3 2.3 
+5.3+1;7+7;2.5*8;.

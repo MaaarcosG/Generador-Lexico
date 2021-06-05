@@ -1560,18 +1560,19 @@ def generate_transition_automata():
 				print(': False')
 			last += len(valid)
 			aut = 1
-			new_token = Token('Token', valid)
+			evaluate_token = Token('Token', valid)
 			while aut<len(automatas):
 				if (simulate_dfa_direct(automatas[aut], valid)):
-					new_token = Token(automatas[aut].id, valid)
+					evaluate_token = Token(automatas[aut].id, valid)
 					break
 				aut += 1
-			print('%s = %s'%(new_token.type,new_token.value))
-			tokens.append(new_token)
+			print('%s = %s' % (evaluate_token.type,evaluate_token.value))
+			tokens.append(evaluate_token)
 			i += len(valid)
 		else:
 				i+=1
 	parser = Production_Parse(tokens)
 	parser.Expr()
+
 if __name__ == "__main__":
    generate_transition_automata()

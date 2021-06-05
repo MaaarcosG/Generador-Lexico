@@ -1,12 +1,9 @@
-# file to create another file
+''' Archivo que sirve para leer el lenguaje de COCOr'''
 
-from os import write
-
-
-def create_file_compiler(dfa, extras, parser, name = "nani"):
-    print("Haciendo archivo ", name)
+def create_file_compiler(dfa, extras, parser, name = 'productions'):
+    print("Se genero el archivo con el nombre %s.py"%name)
     i = 0
-    output = open("./outputs/" + name + ".py", "w+", encoding="utf-8")
+    output = open("./Thompson/" + name + ".py", "w+", encoding="utf-8")
     output.write('# Este es el scanner que se generara con las reglas establecidas por ./Inputs/%s.ATG\n\n' % name)
 
     output.write('import os\n')
@@ -62,14 +59,14 @@ def create_file_compiler(dfa, extras, parser, name = "nani"):
     output.write("\t\t\t\tprint(': False')\n")
     output.write("\t\t\tlast += len(valid)\n")
     output.write("\t\t\taut = 1\n")
-    output.write("\t\t\tnew_token = Token('Token', valid)\n")
+    output.write("\t\t\tevaluate_token = Token('Token', valid)\n")
     output.write("\t\t\twhile aut<len(automatas):\n")
     output.write("\t\t\t\tif (simulate_dfa_direct(automatas[aut], valid)):\n")
-    output.write("\t\t\t\t\tnew_token = Token(automatas[aut].id, valid)\n")
+    output.write("\t\t\t\t\tevaluate_token = Token(automatas[aut].id, valid)\n")
     output.write("\t\t\t\t\tbreak\n")
     output.write('\t\t\t\taut += 1\n')
-    output.write("\t\t\tprint('%s = %s' % (new_token.type,new_token.value))\n")
-    output.write("\t\t\ttokens.append(new_token)\n")
+    output.write("\t\t\tprint('%s = %s' % (evaluate_token.type,evaluate_token.value))\n")
+    output.write("\t\t\ttokens.append(evaluate_token)\n")
     output.write("\t\t\ti += len(valid)\n")
     output.write("\t\telse:\n")
     output.write("\t\t\t\ti+=1\n")
