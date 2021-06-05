@@ -19,5 +19,34 @@ TOKENS
 ident = letter{letter|digit} EXCEPT KEYWORDS.
 number = digit{digit}.
 
+PRODUCTIONS
 
+Expr= {Stat (";")}".".
+
+Stat = 							(.value = 0.)
+	Expression<value>		(.print(str(value)).)
+	.
+
+Expression<result> =		(.result1, result2 = 0, 0.)
+	Term<result1>
+	{    "+"Term<result2>		(.result1+=result2.)
+	   | "-"Term<result2>		(.result1-=result2.)
+	}							(.result=result1.)
+                                (.return result.)
+	.
+
+Term<result>=				(.result1, result2 =  0,0.)
+	Factor<result1>
+	{    "*"Factor<result2>	(.result1*=result2.)
+	   | "/"Factor<result2>	(.result1/=result2.)
+	}							(.result=result1.)
+                                (.return result.)
+	.
+	
+Factor<result> =	(.signo=1.)
+	["-"(.signo = -1.)]
+	( Number<result> | "(" Expression<result> ")") (.result*=signo.)
+	(.return result.).
+	
+Number<result> =  number (.result = int(self.last_token.value).) (.return result.).
 END Aritmetica

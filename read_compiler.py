@@ -1,53 +1,42 @@
-''' Archivo que sirve para leer el lenguaje de COCOr'''
-
-from Thompson.evaluador_expresion import string_to_list, list_to_string
-from utils import str_list
+from utils import read_str
 
 def read_file(direction):
     list_data =  ['CHARACTERS', 'KEYWORDS', 'PRODUCTIONS']
-
+    i = 0
     # guardamos los datos especificos en una lista correspondiente, estas son las que se requeriran para le creacion
-    character = []
+    characters = []
     keywords = []
-    productions = []
     tokens = []
-    data = []  # --> INDICA EL ENCABEZADO
+    productions = []
 
-    # manejador de archivo
-    filename = []
-    count = 0
-    # leemos el archivo
-    text_file = open(direction, 'r')
-    for line in text_file.readlines():
-        if line[-1:] == '\n':
-            filename.append((line[:-1]))
-        else:
-            filename.append(line)
-    text_file.close()
-
-    for read_line in filename:
-        if read_line.strip() == "TOKENS":
-            count = 1
-        if read_line.strip() == "CHARACTERS":
-            count = 2
-        if read_line.strip() == "KEYWORDS":
-            count = 3
-        if read_line.strip() == "PRODUCTIONS":
-            count = 4
+    line = ""
+    while i < len(direction):
+        line, i = read_str(direction, i)
+        print(line)
+        # si encuentra la palabra COMPILER, data es el nombre del archivo
+        if line == "COMPILER":
+            data, i = COMPILER(direction, i)
+        # si encuentra la palabra CHARACTERS
+        if line == "CHARACTERS":
+            characters, i = CHARACTERS(direction, i)
+        # si encuentra la palabra KEYWORDS
+        if line == "KEYWORDS":
+            keywords, i = KEYWORDS(direction, i)
+        # si encuentra la palabra TOKENS
+        if line == "TOKENS":
+            tokens, i = TOKENS(direction, i)
+        # si encuentra la palabra PRODUCTIONS
+        if line == "PRODUCTIONS":
+            productions, i = PRODUCTIONS(direction, i)
+        # si encuentra la palabra END indica la finalizacion del doc
+        if line == "END":
+            final = END(direction, i, data)
+            if final:
+                break
+            else:
+                break
         
-        # anadimos la linea leida para el archivo
-        if count == 1:
-            tokens.append(read_line)
-        if count == 0:
-            data.append(read_line)
-        if count == 2:
-            character.append(read_line)
-        if count == 3:
-            keywords.append(read_line)
-        if count == 4:
-            productions.append(read_line)
-    
-    return data, character, keywords, tokens, productions
+    return data, characters, keywords, tokens, productions
 
 # revisa si char | "CHR", es booleano solo para verificar que se encuentre
 def evaluate_char(data):
@@ -56,235 +45,140 @@ def evaluate_char(data):
     else:
         return False
 
-def create_file_compiler(data, character, keywords, tokens, productions):
-    automata = []
-    chars = []
-    data_automata_keywords = []
-    data_for_keywords = []
-    names_ak = []
-    names_automatas = []
-    
-    # verificamos el encabezado
-    if data[0] != '':
-        encabezado = data[0].split(' ')
-        if encabezado[0] == 'COMPILER':
-            # creamos el archivo que se generara
-            filename = open('./Outputs/'+ encabezado[1] +'.py', 'w+',  encoding="utf-8")   # Creamos el archivo de compilacion
-            # filename = open(encabezado[1] +'.py', 'w+')
-    
-    # comenzamos a escribir en el archivo
-    filename.write('# Este es el scanner que se generara con las reglas establecidas por ./Inputs/%s.ATG' % encabezado[1])
-    filename.write('\n')
-    filename.write('import os')
-    filename.write('\n')
-    filename.write('import sys')
-    filename.write('\n')
-    filename.write('sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))')
-    filename.write('\n')
-    filename.write('from utils import character_read')
-    filename.write('\n')
-    filename.write('from scanner import scanner_data')
-    filename.write('\n')
-    filename.write('\n')
-    filename.write('# Obtenemos los keywords')
-   
-    # recorremos la lista de keywords
-    for i in range(len(keywords)):
-        # leemos el indicador, y separamos los datos que estan en ese indicador
-        if (keywords[i].strip() == 'KEYWORDS'):
-            pass
-        else:
-            # miramos los espacios
-            if keywords[i] != '':
-                s0 = keywords[i].split('=')
-                # chr(34) son las comillas --> ""
-                s1 = s0[1].replace(chr(34), '')
-                s1 = s1.replace(chr(39), '')
-                s1 = s1.replace('.', '')
-                '''
-                print(s0)
-                print(s1)
-                '''
-                data_for_keywords.append(s1.strip())
-    
-    filename.write('\n')
-    filename.write('keywords = %s' % str(data_for_keywords))
-    filename.write('\n')
+# obtenemos el encabezado del documento
+def COMPILER(filename, i):
+    i += 1 
+    data, i = read_str(filename, i)
+    return data, i
 
-    # obtenemos los characters
-    filename.write('\n')
-    filename.write('# characters disponibles')
+def CHARACTERS(filename, i):
+    # sumamos uno al contador
+    i += 1
+    temp = ""
+    # guardamos en un diccioanrio los characters
+    characters = {}
 
-    # recorremos la lista
-    for i in range(len(character)):
-        # indicador
-        if character[i].strip() == 'CHARACTERS':
-            pass
-        else:
-            index_char = character[i].rfind('.')
-            new_character = character[i][:index_char] + '' + character[i][index_char+1:]
-            # si esta vacio 
-            if new_character != '':
-                filename.write('\n')
-                # quitamos el igual
-                s0 = new_character.split('=')
-                # print(s0)
-                # verificamos si son char 
-                if evaluate_char(s0[1]):
-                    chars.append(s0[1].lower())
-                    filename.write(new_character.lower())
-                    filename.write('\n')
-                    filename.write('%s = character_read(%s)' % (s0[0], s0[0].strip().lower()))
-                    filename.write('\n')
-                elif (s0[1].strip() == "'A' . 'Z'") or (s0[1].strip() == "'A' . 'Z'.") or (s0[1].strip()== chr(34)+"A"+chr(34)+ ".." +chr(34)+"Z"+chr(34)):
-                    s0[1] = chr(34)+"ABCDEFGHIJKLMNOPQRSTUVWXYZ"+chr(34)
-                    filename.write('%s = %s' % (s0[0], s0[1]))
-                    filename.write('\n')
-                    filename.write('%s = character_read(%s)' % (s0[0], s0[0].strip()))
-                    filename.write('\n')
-                elif (s0[1].strip() == "'a' . 'z'") or (s0[1].strip() == "'A' . 'Z'.") or (s0[1].strip()== chr(34)+"A"+chr(34)+ ".." +chr(34)+"Z"+chr(34)):
-                    s0[1] = chr(34)+"abcdefghijklmnopqrstuvwxyz"+chr(34)
-                    filename.write('%s = %s' % (s0[0], s0[1]))
-                    filename.write('\n')
-                    filename.write('%s = character_read(%s)' % (s0[0], s0[0].strip()))
-                    filename.write('\n')
-                else:
-                    filename.write(new_character)
-                    filename.write('\n')
-                    filename.write('%s = character_read(%s)' % (s0[0], s0[0].strip()))
-                    filename.write('\n')
+    # variables que sirven para leer e identifcar las lineas encontradas
+    temp_id = ""
+    temp_values = ""
+    line = ""
 
-    filename.write('\n')
-    filename.write('# Aqui se obtenemos cada uno de los tokens permitidos')
-    filename.write('\n')          
+    while True:
+        temp, i = read_str(filename, i) 
+        if temp == "KEYWORDS":
+            i -= 8
+            break
+        line += temp
+        if line[-1] == "." and line[-2] != ".":
+            if "=" in line:
+                lines_complete = line.split("=")
+                # obtenemos el id de los characters
+                temp_id = lines_complete[0]
+                # obtenemos los valores de los characters
+                temp_values = lines_complete[1]
+                print('ID: %s ---> VALUES: %s ' % (temp_id, temp_values))
+                characters[temp_id] = temp_values
+                line =  ""
+            else:
+                print("HAY UN ERROR EN EL ARCHIVO")
+    return characters, i
 
-    # si encuentra un END se acaba
-    # print(tokens[-1][0:3]) 
-    if tokens[-1][0:3] == 'END':
-        tokens.pop()
-    # print(tokens)
-    for i in range(len(tokens)):
-        # indicador
-        if tokens[i].strip() == 'TOKENS':
-            pass
-        else:
-            if len(tokens[i]) != 0:
-                # convertimos los datos a una lista
-                data_list = string_to_list(tokens[i])
-                # quitamos los puntos
-                if data_list[len(data_list)-1] == '.':
-                    data_list.pop()
-                # print(data_list)
-                
-                # los datos evaluados anteriormente los pasamos a una lista
-                data_list = list_to_string(data_list)
-                data_list = data_list.strip()
-                # cambiamos a plus
-                data_list = data_list.replace(chr(34), '+')
-                data_list = data_list.replace('(H)',chr(34) + 'H' + chr(34))
-                data_list = data_list.replace("("," + "+chr(34)+" ("+chr(34)+"+")
-                # data_list = data_list.replace('= ', '+')
-                data_list = data_list.replace(")"," + "+chr(34)+")"+chr(34))
-                data_list = data_list.replace("|"," + "+chr(34)+"|"+chr(34)+"+")
-                data_list = data_list.replace(".", chr(34)+". "+chr(34))
-                data_list = data_list.replace("{", " + "+chr(34)+" (("+chr(34)+"+")
-                data_list = data_list.replace("[", " + "+chr(34)+" (("+chr(34)+"+")
-                data_list = data_list.replace("}", " + "+chr(34)+")*) "+chr(34)+"+")
-                data_list = data_list.replace("]", " + "+chr(34)+")*) "+chr(34)+"+")
+def KEYWORDS(filename, i):
+    # sumamos uno al contador
+    i += 1
+    temp = ""
 
-                # EXCEPT KEYWORD
-                ek = data_list.split()
-                # print(ek)
-                if len(ek)>2 and ek[len(ek)-1] == 'KEYWORDS' and ek[len(ek)-2] == 'EXCEPT':
-                    ek.pop()
-                    ek.pop()
-                    names_ak.append(ek[0])
-                    data_automata_keywords.append(ek[0])
-                elif ek[len(ek)-2] == 'SET' and ek[len(ek)-3] == 'IGNORE':
-                    ek.pop(len(ek)-3)
-                    ek.pop(len(ek)-2)
-                    # data_automata_keywords.append(ek[0])
-                    continue
-                else:
-                    names_automatas.append(ek[0])
-                    automata.append(ek[0])
-                    # print(automata)
-            
-                # convertimos a lista y lo separamos por --> =
-                ek = list_to_string(ek)
-                ek = ek.split('=')
-                
-                # print(ek)
-                ek[1]= ek[1].replace(")*)", ")*) ")
-                
-                 # signo plus
-                if ek[1][0]== "+":
-                    ek[1] = ek[1].replace("+","",1)
-                if ek[1][-1] == "+":
-                    ek[1] = ek[1][:-1]
-                
-                s1 = string_to_list(ek[1])
+    # guardamos en un diccioanrio los KEYWORDS
+    keywords = {}
 
-                # se observa espacios los vamos a quitar
-                if s1[-2] == " ":
-                    s1.pop(len(s1)-2)
-                    
-                for i in range(len(s1)):
-                    if s1[i] == "." or s1[i] == ",":
-                        s1.insert(i+1, " ")
+    temp_id = ""
+    temp_values = ""
+    line = ""
 
-                ek[1] = list_to_string(s1)
-                convert = ek[0]+"="+list_to_string(ek[1])
-                # print(convert)
+    while True:
+        temp, i = read_str(filename, i) 
+        if temp == "TOKENS":
+            i -= 6
+            break
+        line += temp
+        # si encuentra un .
+        if line[-1] == ".":
+            if "=" in line:
+                lines_complete = line.split("=")
+                # obtenemos el id de los characters
+                temp_id = lines_complete[0]
+                # obtenemos los valores de los characters
+                temp_values = lines_complete[1]
+                print('ID: %s ---> VALUES: %s ' % (temp_id, temp_values))
+                keywords[temp_id] = temp_values
+                line =  ""
+            else:
+                print("HAY UN ERROR EN EL ARCHIVO")
+    return (keywords, i)
 
-                convert = convert.replace("((", " ((")
-                convert = convert.replace("+++", " +")
-                convert = convert.replace("++", " +")
-                convert = convert.replace(chr(34)+"("+chr(34), chr(34)+" ("+chr(34))
-                # print(convert)
-                
-                # separamos por simbolos
-                space = convert.split("=")
-                
-                if string_to_list(space[1])[1] == " ":
-                    x = string_to_list(space[1])
-                    x.pop(1)
-                    space[1] = list_to_string(x)
-            
-            
-                convert = space[0]+" = "+list_to_string(space[1])
-                filename.write(convert)
-                filename.write("\n")
+def TOKENS(filename, i):
+    # sumamos uno al contador
+    i += 1
+    temp = ""
 
-    # print(names)
-    filename.write('\n')
-    filename.write('# Nombres de las variables')
-    filename.write('\n')
-    filename.write('names_automatas_keywords = %s' % names_ak)
-    filename.write('\n')
-    filename.write('names_automatas = %s' % names_automatas)
-    filename.write('\n')
-    filename.write('\n')
-    filename.write('# Si existe EXCEPT WORDS se agrega a esta lista')
-    filename.write('\n')
-    filename.write('data_automata_keywords = %s' % str_list(data_automata_keywords))
-    filename.write('\n')
-    filename.write('automata = %s' % str_list(automata))
-    filename.write('\n')
-    filename.write('data_characters = %s' % str_list(chars))
-    filename.write('\n')
-    filename.write('\n')
-    filename.write('# Se scannea lo generado')
-    filename.write('\n')
-    filename.write('if __name__ == '+chr(39)+'__main__'+chr(39)+':')
-    filename.write('\n')
-    filename.write('\t')
-    filename.write('scanner_data(keywords, automata, data_automata_keywords, data_characters, names_automatas_keywords, names_automatas)')
+    # guardamos en un diccioanrio los TOKENS
+    tokens = {}
 
-                
+    temp_id = ""
+    temp_values = ""
+    line = ""
 
+    while True:
+        temp, i = read_str(filename, i) 
+        if temp == "PRODUCTIONS":
+            i -= 11
+            break
+        if temp == "END":
+            i -= 3
+            break
+        line += temp
+        if line[-1] == ".":
+            if "=" in line:
+                lines_complete = line.split("=")
+                # obtenemos el id de los characters
+                temp_id = lines_complete[0]
+                # obtenemos los valores de los characters
+                temp_values = lines_complete[1]
+                print('ID: %s ---> VALUES: %s ' % (temp_id, temp_values))
+                tokens[temp_id] = temp_values
+                line =  ""
+            else:
+                print("HAY UN ERROR EN EL ARCHIVO")
+    return tokens, i
 
+def PRODUCTIONS(filename, i):
+    # sumamos uno al contador
+    i += 1
+    temp = ""
 
-        
-        
-    
+    # guardamos en un diccioanrio los PRODUCTIONS
+    productions = {}
+    temp_id = ""
+    temp_values = ""
+
+    while i < len(filename):
+        temp += filename[i]
+        if temp[-1] == "."  and temp[-2] != "(" and (filename[i + 1] == " " or filename[i+1] == "\n"):
+            temp_id = temp.split("=", 1)[0]
+            temp_values = temp.split("=", 1)[1]
+            # print('ID: %s ---> VALUES: %s ' % (temp_id, temp_values))
+            productions[temp_id] = temp_values
+            temp = ""
+        if "\nEND" in temp:
+            i -= 3
+            temp = ""
+            break
+        i += 1
+    return productions, i
+
+def END(filename, i, data):
+    i += 1
+    end_data, i = read_str(filename, i)
+    if end_data == data:
+        return True
+    return False

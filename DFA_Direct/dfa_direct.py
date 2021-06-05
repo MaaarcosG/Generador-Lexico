@@ -112,7 +112,7 @@ def add_tree(automata, id):
 # funcion de epsilon lock del primer nodo
 def ecerradura_node(automata, node):
     for i in node:
-        for j in automata.state[i].transition:
+        for j in automata.states[i].transitions:
             if (j.symbol == EPSILON) and (j.id not in node):
                 node.append(j.id)
     return node
@@ -130,7 +130,7 @@ def simulate_dfa_direct(automata, expresion):
         print("Estados: %s " % current_node)
         '''
         for node in current_node:
-            for transitions in automata.state[node].transition:
+            for transitions in automata.states[node].transitions:
                 # si el simbolo se encuentra en la expresion y no en los evaluados, se agrega a la lista
                 if (transitions.symbol == expresion[i]) and (transitions.id not in value):
                     value.append(transitions.id)
@@ -148,7 +148,7 @@ def simulate_dfa_direct(automata, expresion):
             break
     # recorremos la lista, para ver si son aceptados o no
     for node in current_node:
-        if automata.state[node].accept == True:
+        if automata.states[node].accept == True:
             return 'Si'
     return 'No'
     

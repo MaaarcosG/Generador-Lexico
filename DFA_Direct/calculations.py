@@ -1,5 +1,5 @@
 EPSILON = 'ε'
-OPERATORS = ['|', '*', '+', '?', '.', ')', '(']
+OPERATORS = ['|', '*', 'ψ', '?', 'ξ', ')', '(']
 
 # found the epsilon into tree
 def states_tree(tree):
@@ -31,7 +31,7 @@ def nullable(tree):
     elif (tree.data == '*'):
         return True
     # n = c1.c2
-    elif (tree.data == '.'):
+    elif (tree.data == 'ξ'):
         c1 = tree.left
         c2 = tree.right
         if nullable(c1) and nullable(c2):
@@ -39,7 +39,7 @@ def nullable(tree):
         else:
             return False
     # n+
-    elif (tree.data == '+'):
+    elif (tree.data == 'ψ'):
         c1 = tree.left
         if nullable(c1):
             return True
@@ -55,7 +55,7 @@ def firstpos(tree):
     position = []
     if (tree.data in OPERATORS):
         # n = c1.c2
-        if (tree.data == '.'):
+        if (tree.data == 'ξ'):
             val = firstpos(tree.left)
             for i in val:
                 position.append(i)
@@ -77,7 +77,7 @@ def firstpos(tree):
             for i in c2:
                 position.append(i)
         # n+
-        elif (tree.data == '+'):
+        elif (tree.data == 'ψ'):
             c1 = firstpos(tree.left)
             for i in c1:
                 position.append(i)
@@ -95,7 +95,7 @@ def lastpos(tree):
     position = []
     if (tree.data in OPERATORS):
         # n = c1.c2
-        if (tree.data == '.'):
+        if (tree.data == 'ξ'):
             val = lastpos(tree.right)
             if nullable(tree.right):
                 c2 = lastpos(tree.left)
@@ -117,7 +117,7 @@ def lastpos(tree):
             for i in c2:
                 position.append(i)
         # n+
-        elif (tree.data == '+'):
+        elif (tree.data == 'ψ'):
             c1 = lastpos(tree.left)
             for i in c1:
                 position.append(i)
@@ -132,7 +132,7 @@ def lastpos(tree):
 
 # followpos reference book table 3.9.4
 def followpos(tree, table):
-    if (tree.data == '.'):
+    if (tree.data == 'ξ'):
         c1 = lastpos(tree.left)
         c2 = firstpos(tree.right)
         for i in c1:
@@ -144,7 +144,7 @@ def followpos(tree, table):
         for i in c1:
             for j in c2:
                 table[i].append(j)
-    elif (tree.data == '+'):
+    elif (tree.data == 'ψ'):
         c1 = lastpos(tree.left)
         c2 = firstpos(tree.left)
         for i in c1:

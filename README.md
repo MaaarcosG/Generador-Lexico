@@ -3,9 +3,9 @@ Proyecto para la clase de "Diseño de Lenguaje de Programacion"
 
 Codigo Fuente Primero proyecto: https://github.com/MaaarcosG/Automatas.git
 
-Codigo Fuente Segundo Proyecto: https://github.com/MaaarcosG/Analizador_Lexico.git
+Codigo Fuente Segundo y Tercer Proyecto: https://github.com/MaaarcosG/Generador-Lexico.git
 
-Video de Youtube: https://youtu.be/PxXa-KeTB5Y
+Video de Youtube: 
 Made by:
 - Sergio Juan Marcos Gutierrez Romero
 - Carne: 17909
@@ -14,7 +14,7 @@ Made by:
 
 Clonar el repositorio:
 ```bash
-$ git clone https://github.com/MaaarcosG/Analizador_Lexico.git
+$ git clone https://github.com/MaaarcosG/Generador-Lexico.git
 ```
 
 Ejecutar el el archivo

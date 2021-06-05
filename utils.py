@@ -16,6 +16,19 @@ def str_list(data):
     lista.append(']')
     return list_to_string(lista)
 
+# función para leer las palabras que se tengan en el archivo
+def read_str(file, actual):
+    temp_word = ""
+    while actual < len(file):
+        if (file[actual] == " " or file[actual] == "\n") and (len(temp_word) > 0):
+            break
+        elif file[actual] == " " or file[actual] == "\n":
+            actual += 1
+        else:
+            temp_word += file[actual]
+            actual += 1
+    return temp_word, actual
+
 # juntamos la informacion con su operador
 def join_data(lst, operator):
     result = [operator] * (len(lst) * 2 - 1)

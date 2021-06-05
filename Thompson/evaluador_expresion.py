@@ -8,8 +8,8 @@ from DFA_Direct.tree import Tree
 from DFA_Direct.calculations import OPERATORS
 
 EPSILON = "ε" 
-OPERATORS = ['|', '*', '+', '?', ' ', ')', '(']
-SPECIAL = ['*', '+', '?']
+OPERATORS = ['|', '*', 'ψ', '?', 'ξ', ')', '(']
+SPECIAL = ['*', 'ψ', '?']
 
 # funcion para las predencias de la expresion
 def predence(operation):
