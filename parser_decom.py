@@ -1,7 +1,7 @@
 # File for productions only
 
 OPS  = ["[", "{", "|", "("]
-OPERATORS = ['|', '*', 'ψ', '?', 'ξ', ')', '(']
+OPERATORS = ['|', '*', '+', '?', '^', ')', '(']
 
 def parser(productions, parse_line, tokens, keywords):
     # creamos una archivo de producciones
@@ -21,7 +21,7 @@ def parser(productions, parse_line, tokens, keywords):
     string += "\t\t\tself.last_token = self.tokens[self.counter_tokens - 1]\n\n"
 
     string += "\tdef expect(self, item, arg = None):\n"
-    string += "\t\tog = self.counter_tokens\n"
+    string += "\t\tcounter_tokens = self.counter_tokens\n"
     string += "\t\tpossible = False\n"
     string += "\t\tif item != None:\n"
     string += "\t\t\ttry:\n"
@@ -29,13 +29,14 @@ def parser(productions, parse_line, tokens, keywords):
     string += "\t\t\t\t\tans = item()\n"
     string += "\t\t\t\telse:\n"
     string += "\t\t\t\t\tans = item(arg)\n"
+    string += "\t\t\t\t# si es booleano\n"
     string += "\t\t\t\tif type(ans) == bool:\n"
     string += "\t\t\t\t\tpossible = ans\n"
     string += "\t\t\t\telse:\n"
     string += "\t\t\t\t\tpossible = True\n"
     string += "\t\t\texcept:\n"
     string += "\t\t\t\tpossible = False\n"
-    string += "\t\tself.counter_tokens = og\n"
+    string += "\t\tself.counter_tokens = counter_tokens\n"
     string += "\t\tself.first_token = self.tokens[self.counter_tokens]\n"
     string += "\t\tself.last_token = self.tokens[self.counter_tokens - 1]\n"
     string += "\t\treturn possible\n\n"
@@ -54,8 +55,6 @@ def parser(productions, parse_line, tokens, keywords):
     string += "\t\t\telse:\n"
     string += "\t\t\t\treturn False\n\n"
 
-    string += "\t# Declaramos las variables int como globales para las operaiones\n"
-    string += "\tvalue, result, value1, value2 = 0,0,0,0\n\n"
     string += "\t# COMIENZA LAS EVALUACIONES DE LAS PRODUCCIOENS\n"
 
     # los tokens permitidos dentro de las produccionse
@@ -119,7 +118,8 @@ def encabezado_funcion(data, string):
     # como esta en C, ree-escribimos la funcion
     # este nos da el nombre de la funcion
     funciton_data = data.split("<")[0]
-        
+    
+    string += "\t# funcion %s\n" % funciton_data
     string += "\tdef " + funciton_data + "(self"
     if "<" in data:
         function_params = data.split("<")[1]

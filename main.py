@@ -1,7 +1,7 @@
 from parser_decom import parser
 from read_compiler import read_file
 from analysis import analyze
-from generate_scanner import create_file_compiler
+from create_file import create_file_compiler
 
 archivo = input('Ingrese el nombre del archivo: ')
 file_open = open(archivo)
